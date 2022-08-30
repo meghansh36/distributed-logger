@@ -2,6 +2,7 @@ import asyncio
 import getopt
 from typing import List, Tuple, final
 import sys
+from utilities import prepare_shell_cmd, execute_shell
 
 MAX_QUERY_SIZE: final = 5120
 hostname = '127.0.0.1'
@@ -38,9 +39,16 @@ async def handle_client_task(reader, writer, client_addr):
         
         query = data.decode()
         print(f"Got query from {client_addr}: {query}")
-        # return_code, cmd = prepare_shell_cmd(query, log_file)
+        return_code, cmd = prepare_shell_cmd(query, log_file)
+        
+        if return_code == 1:
+            print(f"response: {cmd.decode()}")
+            writer.write(cmd)
+        else:
+            output = execute_shell(cmd)
+            print(f"sending {len(output)} bytes")
+            writer.write(output)
 
-        writer.write(b'hello hello and welcome')
         await writer.drain()
 
     
