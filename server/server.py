@@ -1,5 +1,6 @@
 #!/opt/homebrew/bin/python3
 import sys
+import os
 import getopt
 import subprocess
 import ast
@@ -29,11 +30,20 @@ def prepare_shell_cmd(query: str, logpath: str) -> Tuple[int, str]:
 
     try:
         search_strings = ast.literal_eval(query[len(query_prefix):])
+        cmds = []
+        cmd = "grep -c "
+        for search_string in search_strings:
+            cmd += f"-e '{search_string}' "
+        cmd += logpath
+        cmds.append(cmd)
+
         cmd = "grep "
         for search_string in search_strings:
             cmd += f"-e '{search_string}' "
         cmd += logpath
-        return (0, cmd)
+        cmds.append(cmd)
+
+        return (0, cmds)
     except:
         return (1, str.encode("invalid query: expected search ['<query string 1>', '<query string 2>']"))
 
@@ -45,12 +55,32 @@ def socket_send_bytes(sock, data) -> None:
         print('failed to send')
 
 
+def process_query(query, log_file):
+    return_code, cmds = prepare_shell_cmd(query, log_file)
+    if return_code == 1:
+        print(f"response: {cmds.decode()}")
+        return cmds
+    else:
+        output = b''
+        if os.path.isfile(log_file):
+            output = bytes(log_file, 'utf-8')
+            output += b': '
+
+        line_count = execute_shell(cmds[0])
+        output += line_count
+
+        logs = execute_shell(cmds[1])
+        output += logs
+        print(f"sending {len(output)} bytes")
+        return output
+
+
 if __name__ == "__main__":
     MAX_QUERY_SIZE: final = 5120
 
     hostname = '127.0.0.1'
     port = 8000
-    log_file = 'test_logs/HDFS_2K.log'
+    log_file = 'logs/machine.log'
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h:p:l:", [
@@ -122,15 +152,8 @@ if __name__ == "__main__":
 
                 if len(data) > 0:
                     print(f"Got query from {clients[event_socket]}: {data}")
-                    return_code, cmd = prepare_shell_cmd(
-                        data.decode(), log_file)
-                    if return_code == 1:
-                        print(f"response: {cmd.decode()}")
-                        socket_send_bytes(event_socket, cmd)
-                    else:
-                        output = execute_shell(cmd)
-                        print(f"sending {len(output)} bytes")
-                        socket_send_bytes(event_socket, output)
+                    output = process_query(data.decode(), log_file)
+                    socket_send_bytes(event_socket, output)
                 else:  # empty data indicates that client has closed the connection
                     print(f"client {clients[event_socket]} closed connection")
 

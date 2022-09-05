@@ -1,3 +1,4 @@
+#!/opt/homebrew/bin/python3
 import sys
 import asyncio
 import signal
@@ -10,8 +11,8 @@ async def fetch_logs_from_server(server_hostname: str, server_port: int, query: 
             server_hostname, server_port
         )
 
-        print(
-            f'sending query ({query}) to server: {server_hostname}:{server_port} ')
+        # print(
+        #     f'sending query ({query}) to server: {server_hostname}:{server_port} ')
         writer.write(query.encode())
         await writer.drain()
 
@@ -20,21 +21,23 @@ async def fetch_logs_from_server(server_hostname: str, server_port: int, query: 
 
             log_line = await reader.readline()
             if not log_line:
-                print(
-                    f'server ({server_hostname}:{server_port}) connection closed')
+                # print(
+                #     f'server ({server_hostname}:{server_port}) connection closed')
                 break
 
             log_line = log_line.decode()
             if log_line:
                 logs += log_line
 
-        print(f'closing server ({server_hostname}:{server_port}) connection')
+        # print(f'closing server ({server_hostname}:{server_port}) connection')
         writer.close()
         await writer.wait_closed()
 
+        print(f'logs from server ({server_hostname}:{server_port}):')
         print(f'{logs}')
 
     except Exception as e:
+        print(f'logs from server ({server_hostname}:{server_port}):')
         print(
             f'Failed to fetch logs from server ({server_hostname}:{server_port}). Exception ({e})')
 
