@@ -40,7 +40,7 @@ This is a simple python application which provides CLI interface to users to inp
 5. choose option `2` to input search query in the following format `search ['<search string 1 or regex>', <search string 2 or regex>' ...]`.
 
 ```
-$ python3 client.py --config='servers.conf'
+$ python3 client.py --config='servers.conf' --logsToConsole=True
 -------------------------------
 1. Display current servers
 2. Search logs
@@ -65,6 +65,7 @@ logs/machine.log: 314
 matched line count per server: 
 ('127.0.0.1', 8000): 314
 Total matched line count for all server: 314
+Total runtime to fetch all the logs: 0.1149213314056396 seconds
 -------------------------------
 1. Display current servers
 2. Search logs
