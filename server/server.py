@@ -40,7 +40,7 @@ def prepare_grep_shell_cmds(query: str, logpath: str) -> Tuple[int, List[str]]:
         return (1, str.encode("invalid query: expected search ['<query string 1>', '<query string 2>']"))
 
 
-def process_request(query, log_file):
+def process_request(query: str, log_file: str) -> str:
 
     return_code, cmds = prepare_grep_shell_cmds(query, log_file)
     if return_code == 1:

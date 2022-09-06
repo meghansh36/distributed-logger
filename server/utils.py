@@ -1,3 +1,4 @@
+from socket import socket
 import subprocess
 
 '''
@@ -16,9 +17,9 @@ def execute_shell(cmd: str) -> str:
 
 
 '''
-Send provided bytes to the sock object
+Send provided bytes using sock object
 '''
-def socket_send_bytes(sock, data) -> None:
+def socket_send_bytes(sock: socket, data: bytes) -> None:
     try:
         sock.sendall(data)
     except:
