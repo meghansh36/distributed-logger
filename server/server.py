@@ -48,12 +48,22 @@ def process_request(query: str, log_file: str) -> str:
         return cmds
     else:
         output = b''
+
+        # logic to add file names and match count for all the files
         if os.path.isfile(log_file):
             output = bytes(log_file, 'utf-8')
             output += b': '
 
         line_count = execute_shell(cmds[0])
-        output += line_count
+        if os.path.isfile(log_file):
+            output += line_count
+        else:
+            files = line_count.decode().splitlines()
+            output += files[0].encode()
+            for file in files[1:]:
+                output += b','
+                output += file.encode()
+            output += b'\n'
 
         logs = execute_shell(cmds[1])
         output += logs

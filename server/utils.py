@@ -4,7 +4,7 @@ import subprocess
 '''
 Execute provided command with shell and return the reponse.
 '''
-def execute_shell(cmd: str) -> str:
+def execute_shell(cmd: str) -> bytes:
     # execute grep command using shell
     grep = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, shell=True)
