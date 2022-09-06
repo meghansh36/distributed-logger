@@ -13,18 +13,31 @@ def execute_shell(cmd: str) -> str:
         print(f"grep command {cmd} failed with error: {stderr}") # ! make the error more generic
         return b'failed to retrive logs'
 
-def prepare_shell_cmd(query: str, logpath: str) -> Tuple[int, str]:
+def prepare_grep_shell_cmds(query: str, logpath: str) -> Tuple[int, List[bytes]]:
+
     query_prefix = "search "
 
     if not query.startswith(query_prefix):
-        return (1, str.encode("invalid query: expected search ['<query string 1>', '<query string 2>']"))
+        return (1, [str.encode("invalid query: expected search ['<query string 1>', '<query string 2>']")])
 
     try:
         search_strings = ast.literal_eval(query[len(query_prefix):])
+        cmds = []
+
+        # form query to get count of all the matched lines
+        cmd = "grep -c "
+        for search_string in search_strings:
+            cmd += f"-e '{search_string}' "
+        cmd += logpath
+        cmds.append(cmd.encode())
+
+        # form query to seach all the matched lines
         cmd = "grep "
         for search_string in search_strings:
             cmd += f"-e '{search_string}' "
         cmd += logpath
-        return (0, cmd)
+        cmds.append(cmd.encode())
+
+        return (0, cmds)
     except:
-        return (1, str.encode("invalid query: expected search ['<query string 1>', '<query string 2>']"))
+        return (1, [str.encode("invalid query: expected search ['<query string 1>', '<query string 2>']")])

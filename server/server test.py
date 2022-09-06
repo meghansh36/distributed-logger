@@ -2,12 +2,13 @@ import asyncio
 import getopt
 from typing import List, Tuple, final
 import sys
-from utilities import prepare_shell_cmd, execute_shell
+from utilities import prepare_grep_shell_cmds, execute_shell
+import os
 
 MAX_QUERY_SIZE: final = 5120
 hostname = '127.0.0.1'
 port = 8000
-log_file = '../test_logs/HDFS_2K.log'
+log_file = 'logs/machine.log'
 connected_clients = {}
 
 try:
@@ -39,13 +40,34 @@ async def handle_client_task(reader, writer, client_addr):
         
         query = data.decode()
         print(f"Got query from {client_addr}: {query}")
-        return_code, cmd = prepare_shell_cmd(query, log_file)
+        return_code, cmds = prepare_grep_shell_cmds(query, log_file)
         
         if return_code == 1:
-            print(f"response: {cmd.decode()}")
-            writer.write(cmd)
+            print(f"response: {cmds[0].decode()}")
+            writer.write(cmds[0])
         else:
-            output = execute_shell(cmd)
+            output = b''
+
+        # logic to add file names and match count for all the files
+            if os.path.isfile(log_file):
+                output = bytes(log_file, 'utf-8')
+                output += b': '
+
+            line_count = execute_shell(cmds[0].decode())
+            if os.path.isfile(log_file):
+                output += line_count
+            else:
+                files = line_count.decode().splitlines()
+                output += files[0].encode()
+                for file in files[1:]:
+                    output += b','
+                    output += file.encode()
+                output += b'\n'
+            
+            print(f'{output}')
+
+            logs = execute_shell(cmds[1].decode())
+            output += logs
             print(f"sending {len(output)} bytes")
             writer.write(output)
 
