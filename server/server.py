@@ -10,6 +10,9 @@ from selectors import SelectorKey
 from utils import execute_shell, socket_send_bytes
 
 
+'''
+function to prepare grep commands to get matched line count and actual matched lines from log files
+'''
 def prepare_grep_shell_cmds(query: str, logpath: str) -> Tuple[int, List[bytes]]:
 
     query_prefix = "search "
@@ -40,6 +43,9 @@ def prepare_grep_shell_cmds(query: str, logpath: str) -> Tuple[int, List[bytes]]
         return (1, [str.encode("invalid query: expected search ['<query string 1>', '<query string 2>']")])
 
 
+'''
+function to process requests from user and returns responses
+'''
 def process_request(query: str, log_file: str) -> bytes:
 
     return_code, cmds = prepare_grep_shell_cmds(query, log_file)
@@ -64,7 +70,7 @@ def process_request(query: str, log_file: str) -> bytes:
                 output += b','
                 output += file.encode()
             output += b'\n'
-        
+
         print(f'{output}')
 
         logs = execute_shell(cmds[1].decode())

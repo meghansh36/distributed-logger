@@ -6,7 +6,9 @@ import getopt
 import time
 from typing import List, Tuple
 
-
+'''
+coroutine to asyncronously connect, send and recv responses from a single server
+'''
 async def fetch_logs_from_server(server_hostname: str, server_port: int, query: str) -> Tuple[int, str]:
 
     try:
@@ -46,7 +48,9 @@ async def fetch_logs_from_server(server_hostname: str, server_port: int, query: 
             f'Failed to fetch logs from server with Exception ({e})')
         return 0, ""
 
-
+'''
+coroutine to asyncronously handle user query by sending and receiving data from multiple servers
+'''
 async def handle_user_query(server_details, query: str, print_logs_to_console: bool = True) -> None:
 
     background_tasks = []
@@ -71,10 +75,13 @@ async def handle_user_query(server_details, query: str, print_logs_to_console: b
 
     print(f'Total matched line count for all server: {total_matched_count}')
     # total time taken
-    print(f"Total time taken to fetch all the logs from servers: {end - begin} seconds")
+    print(
+        f"Total time taken to fetch all the logs from servers: {end - begin} seconds")
 
-
-def fetch_server_details_from_config_file(filename: str) -> Tuple[Tuple[str, int]]:
+'''
+function to read servers information from a file
+'''
+def fetch_server_details_from_config_file(filename: str) -> List[Tuple[str, int]]:
     servers = []
     try:
         with open(filename) as f:
@@ -90,6 +97,9 @@ def fetch_server_details_from_config_file(filename: str) -> Tuple[Tuple[str, int
     return servers
 
 
+'''
+singnal handler function to catch and process Ctrl-c
+'''
 def handler(signum, frame):
     sys.exit('Ctrl-c was pressed. Exiting the application')
 
@@ -99,6 +109,7 @@ if __name__ == "__main__":
     servers_config_file = 'servers.conf'
     logs_to_console = True
 
+    # process command line options
     try:
         opts, args = getopt.getopt(sys.argv[1:], "c:h", [
                                    "config=", "logsToConsole="])
@@ -151,7 +162,8 @@ if __name__ == "__main__":
                     input("Enter search query (Ex: 'search ['query1', 'query2]'): "))
                 print('fetching logs from all the servers ...')
                 # schedule tasks in async io event loop
-                asyncio.run(handle_user_query(server_details, query, logs_to_console))
+                asyncio.run(handle_user_query(
+                    server_details, query, logs_to_console))
             elif option == 3:
                 sys.exit()
             else:
