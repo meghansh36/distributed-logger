@@ -2,27 +2,16 @@
 import sys
 import os
 import getopt
-import subprocess
 import ast
 import socket
 import selectors
 from typing import List, Tuple, final
 from selectors import SelectorKey
+from utils import execute_shell, socket_send_bytes
 
 
-def execute_shell(cmd: str) -> str:
-    # execute grep command using shell
-    grep = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, shell=True)
-    stdout, stderr = grep.communicate()
-    if len(stderr) == 0:
-        return stdout
-    else:
-        print(f"grep command {cmd} failed with error: {stderr}")
-        return b'failed to retrive logs'
+def prepare_grep_shell_cmds(query: str, logpath: str) -> Tuple[int, List[str]]:
 
-
-def prepare_shell_cmd(query: str, logpath: str) -> Tuple[int, List[str]]:
     query_prefix = "search "
 
     if not query.startswith(query_prefix):
@@ -31,12 +20,15 @@ def prepare_shell_cmd(query: str, logpath: str) -> Tuple[int, List[str]]:
     try:
         search_strings = ast.literal_eval(query[len(query_prefix):])
         cmds = []
+
+        # form query to get count of all the matched lines
         cmd = "grep -c "
         for search_string in search_strings:
             cmd += f"-e '{search_string}' "
         cmd += logpath
         cmds.append(cmd)
 
+        # form query to seach all the matched lines
         cmd = "grep "
         for search_string in search_strings:
             cmd += f"-e '{search_string}' "
@@ -48,15 +40,9 @@ def prepare_shell_cmd(query: str, logpath: str) -> Tuple[int, List[str]]:
         return (1, str.encode("invalid query: expected search ['<query string 1>', '<query string 2>']"))
 
 
-def socket_send_bytes(sock, data) -> None:
-    try:
-        sock.sendall(data)
-    except:
-        print('failed to send')
+def process_request(query, log_file):
 
-
-def process_query(query, log_file):
-    return_code, cmds = prepare_shell_cmd(query, log_file)
+    return_code, cmds = prepare_grep_shell_cmds(query, log_file)
     if return_code == 1:
         print(f"response: {cmds.decode()}")
         return cmds
@@ -76,6 +62,7 @@ def process_query(query, log_file):
 
 
 if __name__ == "__main__":
+
     MAX_QUERY_SIZE: final = 5120
 
     hostname = '127.0.0.1'
@@ -152,7 +139,7 @@ if __name__ == "__main__":
 
                 if len(data) > 0:
                     print(f"Got query from {clients[event_socket]}: {data}")
-                    output = process_query(data.decode(), log_file)
+                    output = process_request(data.decode(), log_file)
                     socket_send_bytes(event_socket, output)
                 else:  # empty data indicates that client has closed the connection
                     print(f"client {clients[event_socket]} closed connection")

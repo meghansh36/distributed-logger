@@ -64,10 +64,6 @@ async def handle_user_query(server_details, query: str):
     print(f'Total matched line count for all server: {total_matched_count}')
 
 
-def handler(signum, frame):
-    sys.exit('Ctrl-c was pressed. Exiting the application')
-
-
 def fetch_server_details_from_config_file(filename: str):
     servers = []
     try:
@@ -82,6 +78,10 @@ def fetch_server_details_from_config_file(filename: str):
         return []
 
     return servers
+
+
+def handler(signum, frame):
+    sys.exit('Ctrl-c was pressed. Exiting the application')
 
 
 if __name__ == "__main__":
