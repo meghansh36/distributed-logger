@@ -89,11 +89,14 @@ if __name__ == "__main__":
     servers_config_file = 'servers.conf'
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "c:", ["config="])
+        opts, args = getopt.getopt(sys.argv[1:], "c:h", ["config="])
 
         for opt, arg in opts:
             if opt in ("-c", "--config"):
                 servers_config_file = arg
+            elif opt in ("-h"):
+                print('client.py -c servers.conf')
+                sys.exit()
 
     except getopt.GetoptError:
         print('client.py -c servers.conf')
