@@ -72,6 +72,7 @@ async def handle_client_task(reader, writer, client_addr):
             writer.write(output)
 
         await writer.drain()
+        writer.close()
 
     
 
