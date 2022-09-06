@@ -4,9 +4,10 @@ import asyncio
 import signal
 import getopt
 import time
+from typing import List, Tuple
 
 
-async def fetch_logs_from_server(server_hostname: str, server_port: int, query: str, print_logs_to_console: bool = True):
+async def fetch_logs_from_server(server_hostname: str, server_port: int, query: str) -> Tuple[int, str]:
 
     try:
         reader, writer = await asyncio.open_connection(
@@ -37,36 +38,43 @@ async def fetch_logs_from_server(server_hostname: str, server_port: int, query: 
         writer.close()
         await writer.wait_closed()
 
-        if print_logs_to_console:
-            print(f'logs from server ({server_hostname}:{server_port}):')
-            print(f'{logs}')
-        return num_log_lines - 1
+        return num_log_lines - 1, logs
 
     except Exception as e:
         print(f'logs from server ({server_hostname}:{server_port}):')
         print(
             f'Failed to fetch logs from server with Exception ({e})')
-        return 0
+        return 0, ""
 
 
-async def handle_user_query(server_details, query: str, print_logs_to_console: bool = True):
+async def handle_user_query(server_details, query: str, print_logs_to_console: bool = True) -> None:
 
     background_tasks = []
     for hostname, port in server_details:
-        background_tasks.append(fetch_logs_from_server(hostname, port, query, print_logs_to_console))
+        background_tasks.append(fetch_logs_from_server(hostname, port, query))
 
+    begin = time.time()
     results = await asyncio.gather(*background_tasks, return_exceptions=True)
+    end = time.time()
+
+    if print_logs_to_console:
+        for i in range(len(background_tasks)):
+            print(
+                f'logs from server ({server_details[i][0]}:{server_details[i][1]}):')
+            print(f'{results[i][1]}')
 
     print('matched line count per server: ')
     total_matched_count = 0
     for i in range(len(background_tasks)):
-        print(f'{server_details[i]}: {results[i]}')
-        total_matched_count += results[i]
+        print(f'{server_details[i]}: {results[i][0]}')
+        total_matched_count += results[i][0]
 
     print(f'Total matched line count for all server: {total_matched_count}')
+    # total time taken
+    print(f"Total time taken to fetch all the logs from servers: {end - begin} seconds")
 
 
-def fetch_server_details_from_config_file(filename: str):
+def fetch_server_details_from_config_file(filename: str) -> Tuple[Tuple[str, int]]:
     servers = []
     try:
         with open(filename) as f:
@@ -92,7 +100,8 @@ if __name__ == "__main__":
     logs_to_console = True
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "c:h", ["config=", "logsToConsole="])
+        opts, args = getopt.getopt(sys.argv[1:], "c:h", [
+                                   "config=", "logsToConsole="])
 
         for opt, arg in opts:
             if opt in ("-c", "--config"):
@@ -103,10 +112,12 @@ if __name__ == "__main__":
                 elif arg == "False":
                     logs_to_console = False
                 else:
-                    print("usage: python3 client.py --config='servers.conf' --logsToConsole=True/False")
+                    print(
+                        "usage: python3 client.py --config='servers.conf' --logsToConsole=True/False")
                     sys.exit(2)
             elif opt in ("-h"):
-                print("usage: python3 client.py --config='servers.conf' --logsToConsole=True/False")
+                print(
+                    "usage: python3 client.py --config='servers.conf' --logsToConsole=True/False")
                 sys.exit()
 
     except getopt.GetoptError:
@@ -139,11 +150,8 @@ if __name__ == "__main__":
                 query = str(
                     input("Enter search query (Ex: 'search ['query1', 'query2]'): "))
                 print('fetching logs from all the servers ...')
-                begin = time.time()
+                # schedule tasks in async io event loop
                 asyncio.run(handle_user_query(server_details, query, logs_to_console))
-                end = time.time()  
-                # total time taken
-                print(f"Total runtime to fetch all the logs: {end - begin}")
             elif option == 3:
                 sys.exit()
             else:
