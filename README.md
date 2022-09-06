@@ -16,7 +16,7 @@ This is a simple python application which will listen on a configured port for s
 2. Run server application with port, hostname and logfile details. `python3 server.py --hostname=<hostname or ip> --port=<server port for listening> --logfile=<path to a log file or log directory>`.
 
 ```
-$ python3 server.py
+$ python3 server.py --hostname='127.0.0.1' --port=8000 --logfile='logs/machine.log'
 Got a connection from ('127.0.0.1', 52736)
 Got query from ('127.0.0.1', 52736): b"search ['blockMap']"
 sending 50977 bytes
@@ -40,7 +40,7 @@ This is a simple python application which provides CLI interface to users to inp
 5. choose option `2` to input search query in the following format `search ['<search string 1 or regex>', <search string 2 or regex>' ...]`.
 
 ```
-$ python3 client.py
+$ python3 client.py --config='servers.conf'
 -------------------------------
 1. Display current servers
 2. Search logs
@@ -64,7 +64,6 @@ logs/machine.log: 314
 
 matched line count per server: 
 ('127.0.0.1', 8000): 314
-('127.0.0.1', 8001): 0
 Total matched line count for all server: 314
 -------------------------------
 1. Display current servers
