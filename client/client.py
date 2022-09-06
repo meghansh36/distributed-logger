@@ -2,6 +2,7 @@
 import sys
 import asyncio
 import signal
+import getopt
 
 
 async def fetch_logs_from_server(server_hostname: str, server_port: int, query: str):
@@ -16,6 +17,7 @@ async def fetch_logs_from_server(server_hostname: str, server_port: int, query: 
         writer.write(query.encode())
         await writer.drain()
 
+        num_log_lines = 0
         logs = ""
         while True:
 
@@ -28,6 +30,7 @@ async def fetch_logs_from_server(server_hostname: str, server_port: int, query: 
             log_line = log_line.decode()
             if log_line:
                 logs += log_line
+                num_log_lines += 1
 
         # print(f'closing server ({server_hostname}:{server_port}) connection')
         writer.close()
@@ -35,11 +38,13 @@ async def fetch_logs_from_server(server_hostname: str, server_port: int, query: 
 
         print(f'logs from server ({server_hostname}:{server_port}):')
         print(f'{logs}')
+        return num_log_lines - 1
 
     except Exception as e:
         print(f'logs from server ({server_hostname}:{server_port}):')
         print(
-            f'Failed to fetch logs from server ({server_hostname}:{server_port}). Exception ({e})')
+            f'Failed to fetch logs from server with Exception ({e})')
+        return 0
 
 
 async def handle_user_query(server_details, query: str):
@@ -48,7 +53,15 @@ async def handle_user_query(server_details, query: str):
     for hostname, port in server_details:
         background_tasks.append(fetch_logs_from_server(hostname, port, query))
 
-    await asyncio.gather(*background_tasks, return_exceptions=True)
+    results = await asyncio.gather(*background_tasks, return_exceptions=True)
+
+    print('matched line count per server: ')
+    total_matched_count = 0
+    for i in range(len(background_tasks)):
+        print(f'{server_details[i]}: {results[i]}')
+        total_matched_count += results[i]
+
+    print(f'Total matched line count for all server: {total_matched_count}')
 
 
 def handler(signum, frame):
@@ -72,6 +85,19 @@ def fetch_server_details_from_config_file(filename: str):
 
 
 if __name__ == "__main__":
+
+    servers_config_file = 'servers.conf'
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "c:", ["config="])
+
+        for opt, arg in opts:
+            if opt in ("-c", "--config"):
+                servers_config_file = arg
+
+    except getopt.GetoptError:
+        print('client.py -c servers.conf')
+        sys.exit(2)
 
     # read servers details from log_servers.conf file
     server_details = fetch_server_details_from_config_file('servers.conf')

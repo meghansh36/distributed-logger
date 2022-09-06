@@ -22,7 +22,7 @@ def execute_shell(cmd: str) -> str:
         return b'failed to retrive logs'
 
 
-def prepare_shell_cmd(query: str, logpath: str) -> Tuple[int, str]:
+def prepare_shell_cmd(query: str, logpath: str) -> Tuple[int, List[str]]:
     query_prefix = "search "
 
     if not query.startswith(query_prefix):
