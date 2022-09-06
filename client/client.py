@@ -3,9 +3,10 @@ import sys
 import asyncio
 import signal
 import getopt
+import time
 
 
-async def fetch_logs_from_server(server_hostname: str, server_port: int, query: str):
+async def fetch_logs_from_server(server_hostname: str, server_port: int, query: str, print_logs_to_console: bool = True):
 
     try:
         reader, writer = await asyncio.open_connection(
@@ -36,8 +37,9 @@ async def fetch_logs_from_server(server_hostname: str, server_port: int, query: 
         writer.close()
         await writer.wait_closed()
 
-        print(f'logs from server ({server_hostname}:{server_port}):')
-        print(f'{logs}')
+        if print_logs_to_console:
+            print(f'logs from server ({server_hostname}:{server_port}):')
+            print(f'{logs}')
         return num_log_lines - 1
 
     except Exception as e:
@@ -47,11 +49,11 @@ async def fetch_logs_from_server(server_hostname: str, server_port: int, query: 
         return 0
 
 
-async def handle_user_query(server_details, query: str):
+async def handle_user_query(server_details, query: str, print_logs_to_console: bool = True):
 
     background_tasks = []
     for hostname, port in server_details:
-        background_tasks.append(fetch_logs_from_server(hostname, port, query))
+        background_tasks.append(fetch_logs_from_server(hostname, port, query, print_logs_to_console))
 
     results = await asyncio.gather(*background_tasks, return_exceptions=True)
 
@@ -87,23 +89,32 @@ def handler(signum, frame):
 if __name__ == "__main__":
 
     servers_config_file = 'servers.conf'
+    logs_to_console = True
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "c:h", ["config="])
+        opts, args = getopt.getopt(sys.argv[1:], "c:h", ["config=", "logsToConsole="])
 
         for opt, arg in opts:
             if opt in ("-c", "--config"):
                 servers_config_file = arg
+            elif opt in ("--logsToConsole"):
+                if arg == "True":
+                    logs_to_console = True
+                elif arg == "False":
+                    logs_to_console = False
+                else:
+                    print("usage: python3 client.py --config='servers.conf' --logsToConsole=True/False")
+                    sys.exit(2)
             elif opt in ("-h"):
-                print('client.py -c servers.conf')
+                print("usage: python3 client.py --config='servers.conf' --logsToConsole=True/False")
                 sys.exit()
 
     except getopt.GetoptError:
-        print('client.py -c servers.conf')
+        print("usage: python3 client.py --config='servers.conf' --logsToConsole=True/False")
         sys.exit(2)
 
     # read servers details from log_servers.conf file
-    server_details = fetch_server_details_from_config_file('servers.conf')
+    server_details = fetch_server_details_from_config_file(servers_config_file)
 
     # register for a signal handler to handle Ctrl + c
     signal.signal(signal.SIGINT, handler)
@@ -128,7 +139,11 @@ if __name__ == "__main__":
                 query = str(
                     input("Enter search query (Ex: 'search ['query1', 'query2]'): "))
                 print('fetching logs from all the servers ...')
-                asyncio.run(handle_user_query(server_details, query))
+                begin = time.time()
+                asyncio.run(handle_user_query(server_details, query, logs_to_console))
+                end = time.time()  
+                # total time taken
+                print(f"Total runtime to fetch all the logs: {end - begin}")
             elif option == 3:
                 sys.exit()
             else:

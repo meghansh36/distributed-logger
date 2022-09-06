@@ -1,5 +1,6 @@
 from socket import socket
 import subprocess
+from time import sleep, time
 
 '''
 Execute provided command with shell and return the reponse.
@@ -20,7 +21,12 @@ def execute_shell(cmd: str) -> bytes:
 Send provided bytes using sock object
 '''
 def socket_send_bytes(sock: socket, data: bytes) -> None:
-    try:
-        sock.sendall(data)
-    except:
-        print('failed to send')
+    
+        bytes_written = 0
+        while bytes_written < len(data):
+            try:
+                bytes_written += sock.send(data[bytes_written:])
+                print(f'written {bytes_written} bytes')
+            except Exception as e:
+                print(f'failed to send {e}')
+                sleep(0.1)

@@ -10,12 +10,12 @@ from selectors import SelectorKey
 from utils import execute_shell, socket_send_bytes
 
 
-def prepare_grep_shell_cmds(query: str, logpath: str) -> Tuple[int, List[str]]:
+def prepare_grep_shell_cmds(query: str, logpath: str) -> Tuple[int, List[bytes]]:
 
     query_prefix = "search "
 
     if not query.startswith(query_prefix):
-        return (1, str.encode("invalid query: expected search ['<query string 1>', '<query string 2>']"))
+        return (1, [str.encode("invalid query: expected search ['<query string 1>', '<query string 2>']")])
 
     try:
         search_strings = ast.literal_eval(query[len(query_prefix):])
@@ -26,26 +26,26 @@ def prepare_grep_shell_cmds(query: str, logpath: str) -> Tuple[int, List[str]]:
         for search_string in search_strings:
             cmd += f"-e '{search_string}' "
         cmd += logpath
-        cmds.append(cmd)
+        cmds.append(cmd.encode())
 
         # form query to seach all the matched lines
         cmd = "grep "
         for search_string in search_strings:
             cmd += f"-e '{search_string}' "
         cmd += logpath
-        cmds.append(cmd)
+        cmds.append(cmd.encode())
 
         return (0, cmds)
     except:
-        return (1, str.encode("invalid query: expected search ['<query string 1>', '<query string 2>']"))
+        return (1, [str.encode("invalid query: expected search ['<query string 1>', '<query string 2>']")])
 
 
-def process_request(query: str, log_file: str) -> str:
+def process_request(query: str, log_file: str) -> bytes:
 
     return_code, cmds = prepare_grep_shell_cmds(query, log_file)
     if return_code == 1:
-        print(f"response: {cmds.decode()}")
-        return cmds
+        print(f"response: {cmds[0].decode()}")
+        return cmds[0]
     else:
         output = b''
 
@@ -54,7 +54,7 @@ def process_request(query: str, log_file: str) -> str:
             output = bytes(log_file, 'utf-8')
             output += b': '
 
-        line_count = execute_shell(cmds[0])
+        line_count = execute_shell(cmds[0].decode())
         if os.path.isfile(log_file):
             output += line_count
         else:
@@ -64,8 +64,10 @@ def process_request(query: str, log_file: str) -> str:
                 output += b','
                 output += file.encode()
             output += b'\n'
+        
+        print(f'{output}')
 
-        logs = execute_shell(cmds[1])
+        logs = execute_shell(cmds[1].decode())
         output += logs
         print(f"sending {len(output)} bytes")
         return output
@@ -132,7 +134,7 @@ if __name__ == "__main__":
         for event, mask in events:
 
             # Get socket from SelectorKey
-            event_socket = event.fileobj
+            event_socket: socket.socket = event.fileobj
 
             if event_socket == log_query_socket:
                 # READ event from server socket must be client connection
