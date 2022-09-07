@@ -25,7 +25,7 @@ closing client connection: ('127.0.0.1', 52736)
 
 ## client application
 
-This is a simple python application which provides CLI interface to users to input search queries which will internally forwards requests to multiple machines and displays the search results from different machines as if the search is performed on files locally.
+This is a simple python application which provides CLI interface to users to input search queries which will internally forwards the requests to multiple machines and displays the search results from different machines as if the search is performed on files locally. The client application lets users to search multiple patterns including regex in a single query.
 
 ### Requirements
 
