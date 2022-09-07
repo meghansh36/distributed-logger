@@ -26,7 +26,6 @@ async def fetch_logs_from_server(server_hostname: str, server_port: int, query: 
         while True:
 
             log_line = await reader.readline()
-            # print("log line", log_line)
             if not log_line:
                 # print(
                 #     f'server ({server_hostname}:{server_port}) connection closed')
@@ -41,7 +40,6 @@ async def fetch_logs_from_server(server_hostname: str, server_port: int, query: 
         writer.close()
         await writer.wait_closed()
 
-        print("returning", num_log_lines)
         return num_log_lines - 1, logs
 
     except Exception as e:
@@ -61,7 +59,6 @@ async def handle_user_query(server_details, query: str, print_logs_to_console: b
 
     begin = time.time()
     results = await asyncio.gather(*background_tasks, return_exceptions=True)
-    print(results)
     end = time.time()
 
     if print_logs_to_console:

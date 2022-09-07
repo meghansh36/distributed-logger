@@ -1,34 +1,14 @@
 import asyncio
-import getopt
-from typing import List, Tuple, final
 import sys
-from utilities import prepare_grep_shell_cmds, execute_shell
+from utils import execute_shell
+from common import MAX_QUERY_SIZE, prepare_grep_shell_cmds, parse_server_cmdline_args
 import os
 
-MAX_QUERY_SIZE: final = 5120
 hostname = '127.0.0.1'
 port = 8000
 log_file = 'logs/machine.log'
+
 connected_clients = {}
-
-try:
-    opts, args = getopt.getopt(sys.argv[1:], "h:p:l:", [
-                            "hostname=", "port=", "help=", "logfile="])
-    
-    for opt, arg in opts:
-        if opt == '--help':
-            print('server.py -h <hostname> -p <port>')
-            sys.exit()
-        elif opt in ("-h", "--hostname"):
-            hostname = arg
-        elif opt in ("-p", "--port"):
-            port = int(arg)
-        elif opt in ("-l", "--logfile"):
-            log_file = arg
-
-except getopt.GetoptError:
-    print('server.py -h <hostname> -p <port>')
-    sys.exit(2)
 
 async def handle_client_task(reader, writer, client_addr):
     while True:
@@ -48,7 +28,7 @@ async def handle_client_task(reader, writer, client_addr):
         else:
             output = b''
 
-        # logic to add file names and match count for all the files
+            # logic to add file names and match count for all the files
             if os.path.isfile(log_file):
                 output = bytes(log_file, 'utf-8')
                 output += b': '
@@ -74,11 +54,9 @@ async def handle_client_task(reader, writer, client_addr):
         await writer.drain()
         writer.close()
 
-    
 
 async def handle_client(reader, writer):
 
-    # add logic here to keep track of all connected clients
     client_socket = writer.get_extra_info('socket')
     client_addr = writer.get_extra_info('peername')
     connected_clients[client_socket] = client_addr
@@ -99,4 +77,10 @@ async def main():
     async with server:
         await server.serve_forever()
 
-asyncio.run(main())
+
+if __name__ == "__main__":
+
+    hostname, port, log_file = parse_server_cmdline_args(sys.argv[1:])
+
+    # start server
+    asyncio.run(main())

@@ -1,47 +1,12 @@
 #!/opt/homebrew/bin/python3
 import sys
 import os
-import getopt
-import ast
 import socket
 import selectors
-from typing import List, Tuple, final
+from typing import List, Tuple
 from selectors import SelectorKey
 from utils import execute_shell, socket_send_bytes
-
-
-'''
-function to prepare grep commands to get matched line count and actual matched lines from log files
-'''
-def prepare_grep_shell_cmds(query: str, logpath: str) -> Tuple[int, List[bytes]]:
-
-    query_prefix = "search "
-
-    if not query.startswith(query_prefix):
-        return (1, [str.encode("invalid query: expected search ['<query string 1>', '<query string 2>']")])
-
-    try:
-        search_strings = ast.literal_eval(query[len(query_prefix):])
-        cmds = []
-
-        # form query to get count of all the matched lines
-        cmd = "grep -c "
-        for search_string in search_strings:
-            cmd += f"-e '{search_string}' "
-        cmd += logpath
-        cmds.append(cmd.encode())
-
-        # form query to seach all the matched lines
-        cmd = "grep "
-        for search_string in search_strings:
-            cmd += f"-e '{search_string}' "
-        cmd += logpath
-        cmds.append(cmd.encode())
-
-        return (0, cmds)
-    except:
-        return (1, [str.encode("invalid query: expected search ['<query string 1>', '<query string 2>']")])
-
+from common import prepare_grep_shell_cmds, MAX_QUERY_SIZE, parse_server_cmdline_args
 
 '''
 function to process requests from user and returns responses
@@ -78,33 +43,10 @@ def process_request(query: str, log_file: str) -> bytes:
         print(f"sending {len(output)} bytes")
         return output
 
-
-if __name__ == "__main__":
-
-    MAX_QUERY_SIZE: final = 5120
-
-    hostname = '127.0.0.1'
-    port = 8000
-    log_file = 'logs/machine.log'
-
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "h:p:l:", [
-            "hostname=", "port=", "help=", "logfile="])
-
-        for opt, arg in opts:
-            if opt == '--help':
-                print('server.py -h <hostname> -p <port>')
-                sys.exit()
-            elif opt in ("-h", "--hostname"):
-                hostname = arg
-            elif opt in ("-p", "--port"):
-                port = int(arg)
-            elif opt in ("-l", "--logfile"):
-                log_file = arg
-
-    except getopt.GetoptError:
-        print('server.py -h <hostname> -p <port>')
-        sys.exit(2)
+'''
+function to start server on hostname and port
+'''
+def start_server(hostname, port, log_file):
 
     server_address = (hostname, port)
 
@@ -169,3 +111,10 @@ if __name__ == "__main__":
                 del clients[event_socket]
                 # close connection
                 event_socket.close()
+
+
+if __name__ == "__main__":
+
+    hostname, port, log_file = parse_server_cmdline_args(sys.argv[1:])
+
+    start_server(hostname=hostname, port=port, log_file=log_file)
