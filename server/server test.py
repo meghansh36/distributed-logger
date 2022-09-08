@@ -8,7 +8,7 @@ import os
 MAX_QUERY_SIZE: final = 5120
 hostname = '127.0.0.1'
 port = 8000
-log_file = 'logs/machine.log'
+log_file = 'logs/machine1.log'
 connected_clients = {}
 
 try:
