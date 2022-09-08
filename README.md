@@ -2,11 +2,16 @@
 
 AwesomeLogRetreiver is a client/server applications which can be used to query distributed log files on multiple machines. The applications provides grep like interface on files distributed on multiple machines.
 
+## Design
+
+
+## Performance
+
 ## server application
 
 This is a simple python application which will listen on a configured port for search queries from multiple clients and searches a single log file or multiple log files in a directory based on the user query.
 
-There are two implementations of servers available one `server_with_asyncio.py` using python asyncio module to listen for client connections and handle client requests asynchronously and the second `server_with_selects.py` uses linux `select` to monitor the sockets for reading and sending data.
+There are two implementations of servers available `server_with_asyncio.py` using python asyncio module to listen for client connections and handle client requests asynchronously and `server_with_selects.py` uses linux `select` to monitor the sockets for reading and sending data.
 
 ### Requirements
 
@@ -110,17 +115,6 @@ choose one of the following options: 4
 Testing log retriver for infrequent log pattern.
 starting server applications
 sending query (search ['subdir38']) to all the configured servers.
-Got a connection from ('127.0.0.1', 54667)
-Got a connection from ('127.0.0.1', 54668)
-Got query from ('127.0.0.1', 54667): b"search ['subdir38']"
-Got query from ('127.0.0.1', 54668): b"search ['subdir38']"
-b'machine.log: 8\n'
-b'machine.log: 8\n'
-sending 1173 bytes
-written 1173 bytes
-closing client connection: ('127.0.0.1', 54667)
-sending 1173 bytes
-written 1173 bytes
 closing client connection: ('127.0.0.1', 54668)
 validating server (127.0.0.1:8000) logs:
 PASS
@@ -130,21 +124,6 @@ Testing log retriver for frequent log pattern.
 starting server applications
 server applications already started
 sending query (search ['a']) to all the configured servers.
-Got a connection from ('127.0.0.1', 54672)
-Got a connection from ('127.0.0.1', 54673)
-Got query from ('127.0.0.1', 54672): b"search ['a']"
-Got query from ('127.0.0.1', 54673): b"search ['a']"
-b'machine.log: 2000\n'
-b'machine.log: 2000\n'
-sending 285866 bytes
-written 261676 bytes
-failed to send [Errno 35] Resource temporarily unavailable
-sending 285866 bytes
-written 261676 bytes
-written 285866 bytes
-closing client connection: ('127.0.0.1', 54673)
-written 285866 bytes
-closing client connection: ('127.0.0.1', 54672)
 validating server (127.0.0.1:8000) logs:
 PASS
 validating server (127.0.0.1:8001) logs:
@@ -159,11 +138,4 @@ validating server (127.0.0.1:8090) logs:
 PASS
 validating server (127.0.0.1:8091) logs:
 PASS
--------------------------------
-1. Run infrequent pattern test.
-2. Run frequent pattern test.
-3. Run invalid server test.
-4. Run all tests.
-5. Exit
-choose one of the following options: 5
 ```
