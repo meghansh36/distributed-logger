@@ -8,15 +8,15 @@ This is a simple python application which will listen on a configured port for s
 
 ### Requirements
 
-1. `python` >= `3.7.X` is required to run server application.
+1. `python` >= `3.7.X` is required to run server application. The server application is developed using in-built python modules and no additional modules are required.
 
 ### How To Use This
 
 1. Navigate to `server` folder.
-2. Run server application with port, hostname and logfile details. `python3 server.py --hostname=<hostname or ip> --port=<server port for listening> --logfile=<path to a log file or log directory>`.
+2. Run server application with port, hostname and logfile details. `python3 server_with_asyncio.py --hostname=<hostname or ip> --port=<server port for listening> --logfile=<path to a log file or log directory>`.
 
 ```
-$ python3 server.py --hostname='127.0.0.1' --port=8000 --logfile='logs/machine.log'
+$ python3 server_with_asyncio.py --hostname='127.0.0.1' --port=8000 --logfile='logs/machine.log'
 Got a connection from ('127.0.0.1', 52736)
 Got query from ('127.0.0.1', 52736): b"search ['blockMap']"
 sending 50977 bytes
@@ -29,7 +29,7 @@ This is a simple python application which provides CLI interface to users to inp
 
 ### Requirements
 
-1. `python` >= `3.7.X` is required to run server application.
+1. `python` >= `3.7.X` is required to run server application. The client application is developed using in-built python modules and no additional modules are required.
 
 ### How To Use This
 

@@ -4,8 +4,6 @@ from utils import execute_shell
 from common import MAX_QUERY_SIZE, prepare_grep_shell_cmds, parse_server_cmdline_args
 import os
 
-hostname = '127.0.0.1'
-port = 8000
 log_file = 'logs/machine.log'
 
 connected_clients = {}
@@ -36,12 +34,15 @@ async def handle_client_task(reader, writer, client_addr):
             line_count = execute_shell(cmds[0].decode())
             if os.path.isfile(log_file):
                 output += line_count
+                output = output.decode().split('/')[-1]
+                output = output.strip().encode()
+                output += b'\n'
             else:
                 files = line_count.decode().splitlines()
-                output += files[0].encode()
+                output += files[0].split('/')[-1].strip().encode()
                 for file in files[1:]:
                     output += b','
-                    output += file.encode()
+                    output += file.split('/')[-1].strip().encode()
                 output += b'\n'
             
             print(f'{output}')
@@ -67,7 +68,7 @@ async def handle_client(reader, writer):
     print(connected_clients)
 
 
-async def main():
+async def start_server(hostname, port):
     server = await asyncio.start_server(
         handle_client, hostname, port)
 
@@ -78,9 +79,14 @@ async def main():
         await server.serve_forever()
 
 
+def main(hostname, port):
+
+    # start server
+    asyncio.run(start_server(hostname, port))
+
+
 if __name__ == "__main__":
 
     hostname, port, log_file = parse_server_cmdline_args(sys.argv[1:])
 
-    # start server
-    asyncio.run(main())
+    main(hostname, port)
