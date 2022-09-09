@@ -3,9 +3,43 @@
 AwesomeLogRetreiver is a client/server applications which can be used to query distributed log files on multiple machines. The applications provides grep like interface on files distributed on multiple machines.
 
 ## Design
+We have gone with a simple distributed architecture where the client sends the search queries to the individual servers. The servers then run the grep commands locally and sends back the outputs to the clients. Since querying and fetching the results are I/O operations, we have utilized the default “asyncio” library in Python. Using “asyncio” we have employed a single-threaded, single-process design which achieves concurrency using an event loop. On the server side, for each connected client, we add a task in the event loop. As soon as a query is received from a connected client, we execute its task from the event loop and return the outputs back to client. On the client end, for each server connection, we create a task in the event loop. We then execute all tasks and wait for every task to complete.
 
+![Architecture](Images/architecture.jpg)
 
 ## Performance
+We tested our solution by search a frequent pattern (“a”), a somewhat frequent pattern (“info”) and a rare pattern (“err”) on 10, 7 and 4 VMs each. Each log file on a VM is of the size 60MB.  Below is the performance time (in seconds). 
+
+| Machine count | Pattern | Average | Standard Deviation |
+|---------------|---------|---------|--------------------|
+| 10 VMs        | "a"     | 9.336   | 0.325122           |
+| 7 VMs         | "a"     | 5.96    | 0.484454           |
+| 4 VMs         | "a"     | 3.76    | 0.389276           |
+| 10 VMs        | "info"  | 0.956   | 0.046733           |
+| 7 VMs         | "info"  | 0.7     | 0.040694           |
+| 4 VMs         | "info"  | 0.46    | 0.011662           |
+| 10 VMs        | "err"   | 0.286   | 0.013565           |
+| 7 VMs         | "err"   | 0.25    | 0.004899           |
+| 4 VMs         | "err"   | 0.22    | 0.013565           |
+
+Below are the match counts for each pattern
+
+| Machine count | Pattern | Match count |
+|---------------|---------|-------------|
+| 10 VMs        | "a"     | 2709264     |
+| 7 VMs         | "a"     | 1899395     |
+| 4 VMs         | "a"     | 1091212     |
+| 10 VMs        | "info"  | 270780      |
+| 7 VMs         | "info"  | 190086      |
+| 4 VMs         | "info"  | 109274      |
+| 10 VMs        | "err"   | 40013       |
+| 7 VMs         | "err"   | 27817       |
+| 4 VMs         | "err"   | 15893       |
+
+The results were as expected. We observed that the frequent pattern took the most time and for each pattern, the average time taken scales linearly with the number of connected VMs. We also observed that the standard deviation for all test cases is less than 1 which implies that the running times are consistent. This is also highlighted by the fact that the trendlines for St. Deviation and Average are almost identical.
+
+![Performance Graph](Images/graph.jpg)
+
 
 ## server application
 
@@ -82,7 +116,7 @@ choose one of the following options: 3
 
 ## Testing
 
-To test the client and server functionality the `tests` directory contain a testing application. The testing application is a CLI application which tests client and server applications by starting server application on two different ports and tests the output of client application for `Frequent` and `Infrequent` search patterns and also tests the scenario when servers crashed. The test application validates the number of log lines and actual log output for each server.
+To test the client and server functionality the `tests` directory contain a testing application. The testing application is a CLI application which tests applications by connecting to servers running on multiple machines and tests the output of client application for `Frequent` and `Infrequent` search patterns and also tests the scenario when servers crashed. We assume that the servers are already running on the test machines. The test application validates the number of log lines and actual log output for each server.
 
 ```
 tests
