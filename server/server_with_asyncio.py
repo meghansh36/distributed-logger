@@ -1,7 +1,7 @@
 import asyncio
 import sys
-from utils import execute_shell
-from common import MAX_QUERY_SIZE, prepare_grep_shell_cmds, parse_server_cmdline_args
+from utils import Utils
+from common import Common
 import os
 
 log_file = 'logs/machine.log'
@@ -10,7 +10,7 @@ connected_clients = {}
 
 async def handle_client_task(reader, writer, client_addr):
     while True:
-        data = await reader.read(MAX_QUERY_SIZE)
+        data = await reader.read(Common.MAX_QUERY_SIZE)
         if data == b'':
             print("Close the connection")
             writer.close()
@@ -18,7 +18,7 @@ async def handle_client_task(reader, writer, client_addr):
         
         query = data.decode()
         print(f"Got query from {client_addr}: {query}")
-        return_code, cmds = prepare_grep_shell_cmds(query, log_file)
+        return_code, cmds = Common.prepare_grep_shell_cmds(query, log_file)
         
         if return_code == 1:
             print(f"response: {cmds[0].decode()}")
@@ -31,7 +31,7 @@ async def handle_client_task(reader, writer, client_addr):
                 output = bytes(log_file, 'utf-8')
                 output += b': '
 
-            line_count = execute_shell(cmds[0].decode())
+            line_count = Utils.execute_shell(cmds[0].decode())
             if os.path.isfile(log_file):
                 output += line_count
                 output = output.decode().split('/')[-1]
@@ -47,7 +47,7 @@ async def handle_client_task(reader, writer, client_addr):
             
             print(f'{output}')
 
-            logs = execute_shell(cmds[1].decode())
+            logs = Utils.execute_shell(cmds[1].decode())
             output += logs
             print(f"sending {len(output)} bytes")
             writer.write(output)
@@ -87,6 +87,6 @@ def main(hostname, port):
 
 if __name__ == "__main__":
 
-    hostname, port, log_file = parse_server_cmdline_args(sys.argv[1:])
+    hostname, port, log_file = Common.parse_server_cmdline_args(sys.argv[1:])
 
     main(hostname, port)

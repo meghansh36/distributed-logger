@@ -1,57 +1,31 @@
+import json
 import os
+from re import search
 import sys
-root_dir = os.getcwd() + '/../'
-sys.path.insert(0, root_dir)
-sys.path.insert(0, root_dir + 'server/')
+sys.path.insert(0, os.getcwd() + '/../')
 from client import client
-from server import server_with_selects
 import time
 import asyncio
 import signal
-from  threading import Thread
 
-
-def parse_server_details(filename: str):
+def parse_server_details(filename: str, test: str):
     servers = []
     try:
         with open(filename) as f:
-            for line in f:
-                hostname, port, username, password = line.split(',')
-                hostname = hostname.strip()
-                port = port.strip()
-                username = username.strip()
-                password = password.strip()
-                servers.append((hostname, int(port), username, password))
+            configs = json.loads(f.read())
+            for config in configs:
+                servers.append(config)
     except Exception as e:
         print(f'failed to read server details from {filename}')
         return []
 
     return servers
 
-is_server_started = False
-server_threads = []
-
-def start_server_applications(server_details):
-    print(f'starting server applications')
-    global is_server_started
-    if (not is_server_started):
-
-        for hostname, port, _, _ in server_details:
-            # create a thread
-            thread = Thread(target=server_with_selects.start_server, args=(hostname, port, root_dir + 'server/logs/machine.log'))
-            thread.setDaemon(True)
-            server_threads.append(thread)
-            thread.start()
-        
-        is_server_started = True
-    else:
-        print(f'server applications already started')
-
 
 async def validate_user_query(server_details, query: str, expected_logs_per_server) -> None:
 
     background_tasks = []
-    for hostname, port, _, _ in server_details:
+    for hostname, port in server_details:
         background_tasks.append(client.fetch_logs_from_server(hostname, port, query))
 
     results = await asyncio.gather(*background_tasks, return_exceptions=True)
@@ -72,13 +46,15 @@ def test_infrequent_log_pattern():
 
     print(f'Testing log retriver for infrequent log pattern.')
 
-    server_details = parse_server_details("config/test_servers_details.conf")
+    server_details = parse_server_details("config/test_servers_details.json")
 
-    start_server_applications(server_details=server_details)
+    print(f'using following servers for testing: ')
+    for server_detail in server_details:
+        print(f'{server_detail["hostname"]}:{server_detail["port"]}')
+    
 
-    time.sleep(10) # wait for servers to fully initialize
 
-    query = "search ['subdir38']"
+    query = "search ['" + server_detail["infrequent_test"]["pattern"] + "']"
 
     expected_logs = ""
     with open('data/expected_infrequent_log_pattern_output.log') as f:
@@ -95,9 +71,11 @@ def test_frequent_log_pattern():
 
     print(f'Testing log retriver for frequent log pattern.')
 
-    server_details = parse_server_details("config/test_servers_details.conf")
+    server_details = parse_server_details("config/test_servers_details.json")
 
-    start_server_applications(server_details=server_details)
+    print(f'using following servers for testing: ')
+    for hostname, port in server_details:
+        print(f'{hostname}:{port}')
 
     query = "search ['a']"
 
