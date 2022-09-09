@@ -2,21 +2,28 @@
 
 AwesomeLogRetreiver is a client/server applications which can be used to query distributed log files on multiple machines. The applications provides grep like interface on files distributed on multiple machines.
 
+## Design
+
+
+## Performance
+
 ## server application
 
 This is a simple python application which will listen on a configured port for search queries from multiple clients and searches a single log file or multiple log files in a directory based on the user query.
 
+There are two implementations of servers available `server_with_asyncio.py` using python asyncio module to listen for client connections and handle client requests asynchronously and `server_with_selects.py` uses linux `select` to monitor the sockets for reading and sending data.
+
 ### Requirements
 
-1. `python` >= `3.7.X` is required to run server application.
+1. `python` >= `3.7.X` is required to run server application. The server application is developed using in-built python modules and no additional modules are required.
 
 ### How To Use This
 
 1. Navigate to `server` folder.
-2. Run server application with port, hostname and logfile details. `python3 server.py --hostname=<hostname or ip> --port=<server port for listening> --logfile=<path to a log file or log directory>`.
+2. Run server application with port, hostname and logfile details. `python3 server_with_asyncio.py --hostname=<hostname or ip> --port=<server port for listening> --logfile=<path to a log file>`.
 
 ```
-$ python3 server.py --hostname='127.0.0.1' --port=8000 --logfile='logs/machine.log'
+$ python3 server_with_asyncio.py --hostname='127.0.0.1' --port=8000 --logfile='logs/machine.log'
 Got a connection from ('127.0.0.1', 52736)
 Got query from ('127.0.0.1', 52736): b"search ['blockMap']"
 sending 50977 bytes
@@ -29,13 +36,13 @@ This is a simple python application which provides CLI interface to users to inp
 
 ### Requirements
 
-1. `python` >= `3.7.X` is required to run server application.
+1. `python` >= `3.7.X` is required to run server application. The client application is developed using in-built python modules and no additional modules are required.
 
 ### How To Use This
 
 1. Navigate to `client` folder.
 2. Fill in all the servers information as `<hostname or ip>, <port>` in the `servers.conf` file in any directory.
-3. Run client application `python3 client.py --config=<full path to config file>`.
+3. Run client application `python3 client.py --config=<full path to config file> --logsToConsole=<True/False>`.
 4. choose option `1` to display configured servers loaded from config file.
 5. choose option `2` to input search query in the following format `search ['<search string 1 or regex>', <search string 2 or regex>' ...]`.
 
@@ -75,3 +82,60 @@ choose one of the following options: 3
 
 ## Testing
 
+To test the client and server functionality the `tests` directory contain a testing application. The testing application is a CLI application which tests client and server applications by starting server application on two different ports and tests the output of client application for `Frequent` and `Infrequent` search patterns and also tests the scenario when servers crashed. The test application validates the number of log lines and actual log output for each server.
+
+```
+tests
+    ├── config
+    │   ├── test_invalid_servers_details.conf
+    │   └── test_servers_details.conf
+    ├── data
+    │   ├── expected_frequent_log_pattern_output.log
+    │   └── expected_infrequent_log_pattern_output.log
+    └── test_distributed_log_retrival.py
+```
+
+### How To Use This
+
+1. Navigate to `tests` folder.
+
+2. Run `python3 test_distributed_log_retrival.py`.
+
+2. Choose the option to execute the test cases.
+
+```
+$ python3 test_distributed_log_retrival.py
+-------------------------------
+1. Run infrequent pattern test.
+2. Run frequent pattern test.
+3. Run invalid server test.
+4. Run all tests.
+5. Exit
+choose one of the following options: 4
+Testing log retriver for infrequent log pattern.
+starting server applications
+sending query (search ['subdir38']) to all the configured servers.
+closing client connection: ('127.0.0.1', 54668)
+validating server (127.0.0.1:8000) logs:
+PASS
+validating server (127.0.0.1:8001) logs:
+PASS
+Testing log retriver for frequent log pattern.
+starting server applications
+server applications already started
+sending query (search ['a']) to all the configured servers.
+validating server (127.0.0.1:8000) logs:
+PASS
+validating server (127.0.0.1:8001) logs:
+PASS
+Testing log retriver for invalid servers.
+sending query (search ['subdir38']) to all the configured servers.
+logs from server (127.0.0.1:8090):
+Failed to fetch logs from server with Exception ([Errno 61] Connect call failed ('127.0.0.1', 8090))
+logs from server (127.0.0.1:8091):
+Failed to fetch logs from server with Exception ([Errno 61] Connect call failed ('127.0.0.1', 8091))
+validating server (127.0.0.1:8090) logs:
+PASS
+validating server (127.0.0.1:8091) logs:
+PASS
+```

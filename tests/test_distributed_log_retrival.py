@@ -1,10 +1,14 @@
 import os
 import sys
-sys.path.insert(0, os.getcwd() + '/../')
+root_dir = os.getcwd() + '/../'
+sys.path.insert(0, root_dir)
+sys.path.insert(0, root_dir + 'server/')
 from client import client
+from server import server_with_selects
 import time
 import asyncio
 import signal
+from  threading import Thread
 
 
 def parse_server_details(filename: str):
@@ -24,12 +28,24 @@ def parse_server_details(filename: str):
 
     return servers
 
+is_server_started = False
+server_threads = []
 
 def start_server_applications(server_details):
     print(f'starting server applications')
+    global is_server_started
+    if (not is_server_started):
 
-def stop_server_applications(server_details):
-    print(f'stopping server applications')
+        for hostname, port, _, _ in server_details:
+            # create a thread
+            thread = Thread(target=server_with_selects.start_server, args=(hostname, port, root_dir + 'server/logs/machine.log'))
+            thread.setDaemon(True)
+            server_threads.append(thread)
+            thread.start()
+        
+        is_server_started = True
+    else:
+        print(f'server applications already started')
 
 
 async def validate_user_query(server_details, query: str, expected_logs_per_server) -> None:
@@ -74,8 +90,6 @@ def test_infrequent_log_pattern():
     # send query to all the servers and validate response
     asyncio.run(validate_user_query(server_details, query, expected_logs))
 
-    stop_server_applications(server_details=server_details)
-
 
 def test_frequent_log_pattern():
 
@@ -99,8 +113,6 @@ def test_frequent_log_pattern():
 
     # send query to all the servers and validate response
     asyncio.run(validate_user_query(server_details, query, expected_logs))
-
-    stop_server_applications(server_details=server_details)
 
 
 def test_with_invalid_servers():
@@ -135,7 +147,7 @@ if __name__ == "__main__":
             print("1. Run infrequent pattern test.")
             print("2. Run frequent pattern test.")
             print("3. Run invalid server test.")
-            print("4. Run All.")
+            print("4. Run all tests.")
             print('5. Exit')
 
             option = int(input("choose one of the following options: "))

@@ -27,15 +27,18 @@ def process_request(query: str, log_file: str) -> bytes:
 
         line_count = execute_shell(cmds[0].decode())
         if os.path.isfile(log_file):
-            output += line_count
+                output += line_count
+                output = output.decode().split('/')[-1]
+                output = output.strip().encode()
+                output += b'\n'
         else:
             files = line_count.decode().splitlines()
-            output += files[0].encode()
+            output += files[0].split('/')[-1].strip().encode()
             for file in files[1:]:
                 output += b','
-                output += file.encode()
+                output += file.split('/')[-1].strip().encode()
             output += b'\n'
-
+        
         print(f'{output}')
 
         logs = execute_shell(cmds[1].decode())

@@ -20,14 +20,14 @@ def prepare_grep_shell_cmds(query: str, logpath: str) -> Tuple[int, List[bytes]]
         cmds = []
 
         # form query to get count of all the matched lines
-        cmd = "grep -c "
+        cmd = "grep -E -c "
         for search_string in search_strings:
             cmd += f"-e '{search_string}' "
         cmd += logpath
         cmds.append(cmd.encode())
 
         # form query to seach all the matched lines
-        cmd = "grep "
+        cmd = "grep -E "
         for search_string in search_strings:
             cmd += f"-e '{search_string}' "
         cmd += logpath

@@ -1,4 +1,4 @@
-logs/machine.log: 8
+machine.log: 8
 081110 103538 18 INFO dfs.FSDataset: Deleting block blk_-4298255715894292387 file /mnt/hadoop/dfs/data/current/subdir38/blk_-4298255715894292387
 081110 210425 19 INFO dfs.FSDataset: Deleting block blk_-6942784423611603919 file /mnt/hadoop/dfs/data/current/subdir38/blk_-6942784423611603919
 081111 023216 19 INFO dfs.FSDataset: Deleting block blk_-2923662094689783995 file /mnt/hadoop/dfs/data/current/subdir38/blk_-2923662094689783995
