@@ -78,8 +78,11 @@ async def handle_user_query(server_details, query: str, print_logs_to_console: b
     print(
         f"Total time taken to fetch all the logs from servers: {end - begin} seconds")
 
+
 '''
-function to read servers information from a file
+function to read servers information from the config file
+
+@params filename: path to the config file
 '''
 def fetch_server_details_from_config_file(filename: str) -> List[Tuple[str, int]]:
     servers = []
@@ -107,6 +110,7 @@ def handler(signum, frame):
 if __name__ == "__main__":
 
     servers_config_file = 'servers.conf'
+    # This flag sets whether the matched lines will be printed to console or not
     logs_to_console = True
 
     # process command line options
@@ -135,7 +139,7 @@ if __name__ == "__main__":
         print("usage: python3 client.py --config='servers.conf' --logsToConsole=True/False")
         sys.exit(2)
 
-    # read servers details from log_servers.conf file
+    # read servers details from servers.conf file
     server_details = fetch_server_details_from_config_file(servers_config_file)
 
     # register for a signal handler to handle Ctrl + c
@@ -144,6 +148,7 @@ if __name__ == "__main__":
     while True:
 
         try:
+            # Display menu options to the user
             print('-------------------------------')
             print("1. Display current servers")
             print("2. Search logs")
@@ -157,13 +162,16 @@ if __name__ == "__main__":
                 for server_detail in server_details:
                     print(f'{i + 1}: {server_details[i]}')
                     i += 1
+            
             elif option == 2:
                 query = str(
                     input("Enter search query (Ex: 'search ['query1', 'query2]'): "))
                 print('fetching logs from all the servers ...')
-                # schedule tasks in async io event loop
+
+                # schedule tasks in asyncio event loop
                 asyncio.run(handle_user_query(
                     server_details, query, logs_to_console))
+
             elif option == 3:
                 sys.exit()
             else:

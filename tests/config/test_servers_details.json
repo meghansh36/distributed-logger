@@ -1,0 +1,69 @@
+
+{
+    "frequent_tests": {
+        "servers": [
+            {
+                "hostname": "127.0.0.1",
+                "port": 8000
+            },
+            {
+                "hostname": "127.0.0.1",
+                "port": 8001
+            },
+            {
+                "hostname": "127.0.0.1",
+                "port": 8002
+            },
+            {
+                "hostname": "127.0.0.1",
+                "port": 8003
+            }
+        ],
+        "pattern": "a",
+        "expected_line_count": 2000
+    },
+    "infrequent_tests": {
+        "servers": [
+            {
+                "hostname": "127.0.0.1",
+                "port": 8000
+            },
+            {
+                "hostname": "127.0.0.1",
+                "port": 8001
+            },
+            {
+                "hostname": "127.0.0.1",
+                "port": 8002
+            },
+            {
+                "hostname": "127.0.0.1",
+                "port": 8003
+            }
+        ],
+        "pattern": "cefer",
+        "expected_line_count": 8
+    },
+    "invalid_servers": {
+        "servers": [
+            {
+                "hostname": "127.0.0.1",
+                "port": 8000
+            },
+            {
+                "hostname": "127.0.0.1",
+                "port": 8001
+            },
+            {
+                "hostname": "127.0.0.1",
+                "port": 8002
+            },
+            {
+                "hostname": "127.0.0.1",
+                "port": 8003
+            }
+        ],
+        "pattern": "cefer",
+        "expected_line_count": 0
+    }
+}
