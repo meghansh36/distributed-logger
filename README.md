@@ -41,7 +41,7 @@ The results were as expected. We observed that the frequent pattern took the mos
 ![Performance Graph](Images/graph.jpg)
 
 
-## server application
+## Server Application
 
 This is a simple python application which will listen on a configured port for search queries from multiple clients and searches a single log file or multiple log files in a directory based on the user query.
 
@@ -64,7 +64,7 @@ sending 50977 bytes
 closing client connection: ('127.0.0.1', 52736)
 ```
 
-## client application
+## Client Application
 
 This is a simple python application which provides CLI interface to users to input search queries which will internally forwards the requests to multiple machines and displays the search results from different machines as if the search is performed on files locally. The client application lets users to search multiple patterns including regex in a single query.
 
