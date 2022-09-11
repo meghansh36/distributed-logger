@@ -8,6 +8,9 @@ from client.client import Client
 import asyncio
 import signal
 
+'''
+parse the custom testcase format
+'''
 def parse_server_details(filename: str, test_name: str):
     servers = []
     pattern = ''
@@ -27,6 +30,9 @@ def parse_server_details(filename: str, test_name: str):
     return servers, pattern, expected_line_count_per_server
 
 
+'''
+function to send queries to all the connected clients
+'''
 async def validate_user_query(server_details: List, query: str, expected_log_count_per_server: List) -> None:
 
     # create client object
@@ -49,6 +55,9 @@ async def validate_user_query(server_details: List, query: str, expected_log_cou
             print(f'actual log count: {actual_logs_count}, expected log count: {expected_logs_count}')
 
 
+'''
+function to execute and validate test cases
+'''
 def test_log_pattern(test_name: str):
 
     print(f'Testing log retriver for {test_name}.')
