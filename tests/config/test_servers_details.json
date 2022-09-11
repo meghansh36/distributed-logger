@@ -1,69 +1,78 @@
 
 {
-    "frequent_tests": {
+    "frequent_pattern": {
         "servers": [
             {
                 "hostname": "127.0.0.1",
-                "port": 8000
+                "port": 8000,
+                "expected_line_count": 0
             },
             {
                 "hostname": "127.0.0.1",
-                "port": 8001
+                "port": 8001,
+                "expected_line_count": 0
             },
             {
                 "hostname": "127.0.0.1",
-                "port": 8002
+                "port": 8002,
+                "expected_line_count": 0
             },
             {
                 "hostname": "127.0.0.1",
-                "port": 8003
+                "port": 8003,
+                "expected_line_count": 0
             }
         ],
-        "pattern": "a",
-        "expected_line_count": 2000
+        "pattern": "a"
     },
-    "infrequent_tests": {
+    "infrequent_pattern": {
         "servers": [
             {
                 "hostname": "127.0.0.1",
-                "port": 8000
+                "port": 8000,
+                "expected_line_count": 0
             },
             {
                 "hostname": "127.0.0.1",
-                "port": 8001
+                "port": 8001,
+                "expected_line_count": 0
             },
             {
                 "hostname": "127.0.0.1",
-                "port": 8002
+                "port": 8002,
+                "expected_line_count": 0
             },
             {
                 "hostname": "127.0.0.1",
-                "port": 8003
+                "port": 8003,
+                "expected_line_count": 0
             }
         ],
-        "pattern": "cefer",
-        "expected_line_count": 8
+        "pattern": "a"
     },
     "invalid_servers": {
         "servers": [
             {
                 "hostname": "127.0.0.1",
-                "port": 8000
+                "port": 8000,
+                "expected_line_count": 0
             },
             {
                 "hostname": "127.0.0.1",
-                "port": 8001
+                "port": 8001,
+                "expected_line_count": 0
             },
             {
                 "hostname": "127.0.0.1",
-                "port": 8002
+                "port": 8002,
+                "expected_line_count": 0
             },
             {
                 "hostname": "127.0.0.1",
-                "port": 8003
+                "port": 8003,
+                "expected_line_count": 0
             }
         ],
-        "pattern": "cefer",
-        "expected_line_count": 0
+        "pattern": "a"
     }
 }

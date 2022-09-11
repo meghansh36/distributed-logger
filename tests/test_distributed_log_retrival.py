@@ -1,28 +1,36 @@
+from http import client
 import json
 import os
-from re import search
 import sys
+from typing import List
 sys.path.insert(0, os.getcwd() + '/../')
-from client import client
-import time
+from client.client import Client
 import asyncio
 import signal
 
-def parse_server_details(filename: str, test: str):
+def parse_server_details(filename: str, test_name: str):
     servers = []
+    pattern = ''
+    expected_line_count_per_server = []
     try:
         with open(filename) as f:
-            configs = json.loads(f.read())
-            for config in configs:
-                servers.append(config)
+            config = json.loads(f.read())
+            test_details = config[test_name]
+            pattern = test_details['pattern']
+            for server in test_details['servers']:
+                servers.append((server['hostname'], server['port']))
+                expected_line_count_per_server.append(server['expected_line_count'])
     except Exception as e:
         print(f'failed to read server details from {filename}')
-        return []
+        return ([], '', 0)
 
-    return servers
+    return servers, pattern, expected_line_count_per_server
 
 
-async def validate_user_query(server_details, query: str, expected_logs_per_server) -> None:
+async def validate_user_query(server_details: List, query: str, expected_log_count_per_server: List) -> None:
+
+    # create client object
+    client = Client()
 
     background_tasks = []
     for hostname, port in server_details:
@@ -31,83 +39,31 @@ async def validate_user_query(server_details, query: str, expected_logs_per_serv
     results = await asyncio.gather(*background_tasks, return_exceptions=True)
 
     for i in range(len(background_tasks)):
-        actual_logs_count, actual_logs = results[i]
-        expected_logs_count, expected_logs = expected_logs_per_server[i]
+        actual_logs_count, _ = results[i]
+        expected_logs_count = expected_log_count_per_server[i]
         print(f'validating server ({server_details[i][0]}:{server_details[i][1]}) logs:')
-        if (expected_logs_count == actual_logs_count) and (expected_logs == actual_logs):
+        if expected_logs_count == actual_logs_count:
             print(f'PASS')
         else:
             print(f'FAIL')
             print(f'actual log count: {actual_logs_count}, expected log count: {expected_logs_count}')
-            print(f'actual logs:\n {actual_logs} \n expected logs:\n {expected_logs}')
 
 
-def test_infrequent_log_pattern():
+def test_log_pattern(test_name: str):
 
-    print(f'Testing log retriver for infrequent log pattern.')
+    print(f'Testing log retriver for {test_name}.')
 
-    server_details = parse_server_details("config/test_servers_details.json")
-
-    print(f'using following servers for testing: ')
-    for server_detail in server_details:
-        print(f'{server_detail["hostname"]}:{server_detail["port"]}')
-    
-
-
-    query = "search ['" + server_detail["infrequent_test"]["pattern"] + "']"
-
-    expected_logs = ""
-    with open('data/expected_infrequent_log_pattern_output.log') as f:
-        expected_logs = f.read()
-
-    expected_logs = [(8, expected_logs), (8, expected_logs)]
-
-    print(f'sending query ({query}) to all the configured servers.')
-    # send query to all the servers and validate response
-    asyncio.run(validate_user_query(server_details, query, expected_logs))
-
-
-def test_frequent_log_pattern():
-
-    print(f'Testing log retriver for frequent log pattern.')
-
-    server_details = parse_server_details("config/test_servers_details.json")
+    server_details, pattern, expected_line_count_per_server = parse_server_details("config/test_servers_details.json", test_name)
 
     print(f'using following servers for testing: ')
     for hostname, port in server_details:
         print(f'{hostname}:{port}')
-
-    query = "search ['a']"
-
-    time.sleep(10) # wait for servers to fully initialize
-
-    expected_logs = ""
-    with open('data/expected_frequent_log_pattern_output.log') as f:
-        expected_logs = f.read()
-
-    expected_logs = [(2000, expected_logs), (2000, expected_logs)]
+    
+    query = "search ['" + pattern + "']"
 
     print(f'sending query ({query}) to all the configured servers.')
-
     # send query to all the servers and validate response
-    asyncio.run(validate_user_query(server_details, query, expected_logs))
-
-
-def test_with_invalid_servers():
-
-    print(f'Testing log retriver for invalid servers.')
-
-    server_details = parse_server_details("config/test_invalid_servers_details.conf")
-
-    query = "search ['subdir38']"
-
-    expected_logs = [(0, ""), (0, "")]
-
-    print(f'sending query ({query}) to all the configured servers.')
-
-    # send query to all the servers and validate response
-    asyncio.run(validate_user_query(server_details, query, expected_logs))
-
+    asyncio.run(validate_user_query(server_details, query, expected_line_count_per_server))
 
 def handler(signum, frame):
     sys.exit('Ctrl-c was pressed. Exiting the application')
@@ -131,15 +87,15 @@ if __name__ == "__main__":
             option = int(input("choose one of the following options: "))
 
             if option == 1:
-                test_infrequent_log_pattern()
+                test_log_pattern("infrequent_pattern")
             elif option == 2:
-                test_frequent_log_pattern()
+                test_log_pattern("frequent_pattern")
             elif option == 3:
-                test_with_invalid_servers()
+                test_log_pattern("invalid_servers")
             elif option == 4:
-                test_infrequent_log_pattern()
-                test_frequent_log_pattern()
-                test_with_invalid_servers()
+                test_log_pattern("infrequent_pattern")
+                test_log_pattern("frequent_pattern")
+                test_log_pattern("invalid_servers")
             else:
                 sys.exit()
         except Exception as e:
