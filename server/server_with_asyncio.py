@@ -56,7 +56,7 @@ class ServerWithAsyncio :
                     output = bytes(self.log_file, 'utf-8')
                     output += b': '
                 
-                # ??? what does this do?
+                # logic to convert multiple lines grep output to a single line
                 line_count = Utils.execute_shell(cmds[0].decode())
                 if os.path.isfile(self.log_file):
                     output += line_count
