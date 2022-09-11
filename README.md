@@ -49,7 +49,7 @@ There are two implementations of servers available `server_with_asyncio.py` usin
 
 ### Requirements
 
-1. `python` >= `3.7.X` is required to run server application. The server application is developed using in-built python modules and no additional modules are required.
+1. `python` >= `3.8.x` is required to run server application. The server application is developed using in-built python modules and no additional modules are required.
 
 ### How To Use This
 
@@ -70,7 +70,7 @@ This is a simple python application which provides CLI interface to users to inp
 
 ### Requirements
 
-1. `python` >= `3.7.X` is required to run server application. The client application is developed using in-built python modules and no additional modules are required.
+1. `python` >= `3.8.x` is required to run client application. The client application is developed using in-built python modules and no additional modules are required.
 
 ### How To Use This
 
@@ -121,11 +121,7 @@ To test the client and server functionality the `tests` directory contain a test
 ```
 tests
     ├── config
-    │   ├── test_invalid_servers_details.conf
-    │   └── test_servers_details.conf
-    ├── data
-    │   ├── expected_frequent_log_pattern_output.log
-    │   └── expected_infrequent_log_pattern_output.log
+    │   └── test_servers_details.json
     └── test_distributed_log_retrival.py
 ```
 
